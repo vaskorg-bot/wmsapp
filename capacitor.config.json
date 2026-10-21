@@ -1,0 +1,10 @@
+{
+  "appId": "hu.pdaraktar.wms",
+  "appName": "PDA Raktár",
+  "webDir": "www",
+  "android": {
+    "allowMixedContent": false,
+    "captureInput": false,
+    "webContentsDebuggingEnabled": false
+  }
+}

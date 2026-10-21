@@ -1,0 +1,57 @@
+# Builds the signed APK on every push to main (or manually: Actions > Build APK > Run workflow).
+# Download it from the run page: Artifacts > pda-raktar-apk
+# Signing key comes from repository secrets KEYSTORE_BASE64 and KEYSTORE_PASSWORD (never committed).
+name: Build APK
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Restore signing key
+        env:
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+        run: |
+          if [ -z "$KEYSTORE_BASE64" ] || [ -z "$KEYSTORE_PASSWORD" ]; then
+            echo "::error::Hiányzik az aláíró kulcs. Settings > Secrets and variables > Actions: KEYSTORE_BASE64 és KEYSTORE_PASSWORD."
+            exit 1
+          fi
+          echo "$KEYSTORE_BASE64" | tr -d ' \r\n' | base64 -d > android/app/pda-raktar.keystore
+          printf "storeFile=pda-raktar.keystore\nstorePassword=%s\nkeyAlias=pdaraktar\nkeyPassword=%s\n" "$KEYSTORE_PASSWORD" "$KEYSTORE_PASSWORD" > android/app/keystore.properties
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - uses: android-actions/setup-android@v3
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build web assets and sync to Android
+        run: npm run build && npx cap sync android
+
+      - name: Assemble APK
+        working-directory: android
+        run: |
+          chmod +x gradlew
+          ./gradlew assembleRelease --no-daemon
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: pda-raktar-apk
+          path: android/app/build/outputs/apk/release/app-release.apk
+          if-no-files-found: error

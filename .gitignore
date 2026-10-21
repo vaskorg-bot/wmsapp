@@ -1,0 +1,7 @@
+node_modules/
+www/
+.DS_Store
+# signing key: never commit (stored in GitHub Secrets)
+*.keystore
+*.jks
+keystore.properties

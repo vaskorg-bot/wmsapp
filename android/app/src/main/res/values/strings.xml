@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">PDA Raktár</string>
+    <string name="title_activity_main">PDA Raktár</string>
+    <string name="package_name">hu.pdaraktar.wms</string>
+    <string name="custom_url_scheme">hu.pdaraktar.wms</string>
+</resources>
